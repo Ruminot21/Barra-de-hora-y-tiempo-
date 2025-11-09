@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overlay Inferior Completo</title>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
+        color: white;
+        height: 100vh;
+    }
+
+    .overlay-bottom {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #007BFF;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+        animation: slideUp 0.6s ease;
+        z-index: 1000;
+        flex-wrap: nowrap;
+        gap: 10px;
+    }
+
+    .overlay-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        width: 120px;
+        height: 90px;
+        padding: 10px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .overlay-item:hover {
+        transform: scale(1.05);
+    }
+
+    .icon {
+        font-size: 1.6em;
+    }
+
+    .label {
+        font-size: 0.85em;
+        opacity: 0.9;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
+</head>
+<body>
+
+<div class="overlay-bottom">
+    <div class="overlay-item">
+        <span class="icon" id="iconoHora">🕒</span>
+        <span id="hora">--:--:--</span>
+        <span class="label"></span>
+    </div>
+
+    <div class="overlay-item">
+        <span class="icon" id="iconoFecha">📅</span>
+        <span id="fecha">--/--/----</span>
+        <span class="label"></span>
+    </div>
+
+    <div class="overlay-item">
+        <span class="icon" id="iconoClima">☀️</span>
+        <span id="temperatura">-- °C</span>
+        <span id="descripcionClima">---</span>
+        <span class="label"></span>
+    </div>
+
+    <div class="overlay-item">
+        <span class="icon" id="iconoViento">💨</span>
+        <span id="viento">-- km/h</span>
+        <span class="label"></span>
+    </div>
+
+    <div class="overlay-item">
+        <span class="icon" id="iconoLluvia">☔</span>
+        <span id="lluvia">-- mm</span>
+        <span class="label"></span>
+    </div>
+</div>
+
+<script>
+    const API_KEY = "08956bbc1467eae311c7eea17b034270";
+    const CIUDAD = "Curacaví";
+
+    function actualizarFechaHora() {
+        const ahora = new Date();
+        document.getElementById('hora').textContent =
+            ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('fecha').textContent =
+            ahora.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+        const hora = ahora.getHours();
+        document.getElementById('iconoHora').textContent = (hora >= 6 && hora < 20) ? "🌞" : "🌙";
+        document.getElementById('iconoFecha').textContent = "📆";
+    }
+
+    function obtenerIconoClima(codigo) {
+        if (codigo >= 200 && codigo < 300) return "⛈️";
+        if (codigo >= 300 && codigo < 500) return "🌦️";
+        if (codigo >= 500 && codigo < 600) return "🌧️";
+        if (codigo >= 600 && codigo < 700) return "❄️";
+        if (codigo >= 700 && codigo < 800) return "🌫️";
+        if (codigo === 800) return "☀️";
+        if (codigo > 800) return "☁️";
+        return "❓";
+    }
+
+    function obtenerIconoViento(velocidad) {
+        if (velocidad < 5) return "🍃";
+        if (velocidad < 15) return "💨";
+        if (velocidad < 30) return "🌬️";
+        return "🌪️";
+    }
+
+    function obtenerIconoPrecipitacion(rain, snow) {
+        if (rain && rain["1h"] > 0) return "🌧️";
+        if (snow && snow["1h"] > 0) return "❄️";
+        return "☔";
+    }
+
+    async function actualizarClima() {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${CIUDAD}&units=metric&lang=es&appid=${API_KEY}`;
+        try {
+            const respuesta = await fetch(url);
+            if (!respuesta.ok) throw new Error("Error al obtener datos del clima");
+            const datos = await respuesta.json();
+
+            const temp = datos.main.temp.toFixed(1);
+            document.getElementById('temperatura').textContent = `${temp}°C`;
+
+            const descripcion = datos.weather[0].description;
+            document.getElementById('descripcionClima').textContent = descripcion.charAt(0).toUpperCase() + descripcion.slice(1);
+
+            const codigoClima = datos.weather[0].id;
+            document.getElementById('iconoClima').textContent = obtenerIconoClima(codigoClima);
+
+            const viento = (datos.wind.speed * 3.6).toFixed(1);
+            document.getElementById('viento').textContent = `${viento} km/h`;
+            document.getElementById('iconoViento').textContent = obtenerIconoViento(viento);
+
+            let lluviaTexto = "0 mm";
+            const iconoLluvia = obtenerIconoPrecipitacion(datos.rain, datos.snow);
+            if (datos.rain && datos.rain["1h"]) {
+                lluviaTexto = `${datos.rain["1h"].toFixed(1)} mm lluvia`;
+            } else if (datos.snow && datos.snow["1h"]) {
+                lluviaTexto = `${datos.snow["1h"].toFixed(1)} mm nieve`;
+            }
+            document.getElementById('lluvia').textContent = lluviaTexto;
+            document.getElementById('iconoLluvia').textContent = iconoLluvia;
+
+        } catch (error) {
+            document.getElementById('temperatura').textContent = "N/D";
+            document.getElementById('descripcionClima').textContent = "Error";
+            document.getElementById('viento').textContent = "N/D";
+            document.getElementById('lluvia').textContent = "N/D";
+            console.error(error);
+        }
+    }
+
+    setInterval(actualizarFechaHora, 1000);
+    actualizarFechaHora();
+    actualizarClima();
+    setInterval(actualizarClima, 600000);
+</script>
+
+</body>
+</html>
