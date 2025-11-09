@@ -3,100 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Overlay Inferior Completo</title>
+<title>Banner Noticiero</title>
 <style>
+    /* Fondo y cuerpo */
     body {
         margin: 0;
+        background: transparent;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
         color: white;
-        height: 100vh;
+        overflow: hidden;
     }
 
-    .overlay-bottom {
+    /* Contenedor del banner */
+    .banner {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
-        background: #007BFF;
+        background: linear-gradient(90deg, #002b80, #004dff, #007bff);
         display: flex;
-        justify-content: center;
         align-items: center;
-        padding: 10px 0;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
-        animation: slideUp 0.6s ease;
+        justify-content: space-between;
+        padding: 10px 25px;
+        box-shadow: 0 -2px 15px rgba(0,0,0,0.6);
+        border-top: 3px solid #ffffff44;
+        font-size: 1rem;
+        height: 70px;
         z-index: 1000;
-        flex-wrap: nowrap;
-        gap: 10px;
     }
 
-    .overlay-item {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        width: 120px;
-        height: 90px;
-        padding: 10px;
-        text-align: center;
+    /* Secciones internas del banner */
+    .banner-section {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Estilo de cada bloque de información */
+    .info-block {
+        display: flex;
         align-items: center;
         gap: 6px;
-        transition: transform 0.3s ease;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        background: rgba(255,255,255,0.1);
+        border-radius: 6px;
+        padding: 6px 10px;
+        backdrop-filter: blur(4px);
+        box-shadow: inset 0 0 6px rgba(255,255,255,0.1);
     }
 
-    .overlay-item:hover {
-        transform: scale(1.05);
-    }
-
+    /* Iconos */
     .icon {
-        font-size: 1.6em;
+        font-size: 1.4em;
     }
 
-    .label {
-        font-size: 0.85em;
-        opacity: 0.9;
+    /* Texto del bloque */
+    .info-text {
+        font-weight: 500;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    }
+
+    /* Animación de aparición */
+    .banner {
+        animation: slideUp 0.8s ease forwards;
     }
 
     @keyframes slideUp {
         from { transform: translateY(100%); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
     }
+
+    /* Responsivo */
+    @media (max-width: 800px) {
+        .banner {
+            flex-direction: column;
+            height: auto;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+    }
 </style>
 </head>
 <body>
 
-<div class="overlay-bottom">
-    <div class="overlay-item">
-        <span class="icon" id="iconoHora">🕒</span>
-        <span id="hora">--:--:--</span>
-        <span class="label"></span>
+<!-- 📰 Banner estilo noticiero -->
+<div class="banner">
+
+    <!-- Sección izquierda: hora y fecha -->
+    <div class="banner-section">
+        <div class="info-block">
+            <span class="icon" id="iconoHora">🕒</span>
+            <span class="info-text" id="hora">--:--:--</span>
+        </div>
+
+        <div class="info-block">
+            <span class="icon" id="iconoFecha">📅</span>
+            <span class="info-text" id="fecha">--/--/----</span>
+        </div>
     </div>
 
-    <div class="overlay-item">
-        <span class="icon" id="iconoFecha">📅</span>
-        <span id="fecha">--/--/----</span>
-        <span class="label"></span>
+    <!-- Sección central: clima -->
+    <div class="banner-section">
+        <div class="info-block">
+            <span class="icon" id="iconoClima">☀️</span>
+            <span class="info-text" id="temperatura">-- °C</span>
+            <span class="info-text" id="descripcionClima">---</span>
+        </div>
     </div>
 
-    <div class="overlay-item">
-        <span class="icon" id="iconoClima">☀️</span>
-        <span id="temperatura">-- °C</span>
-        <span id="descripcionClima">---</span>
-        <span class="label"></span>
-    </div>
+    <!-- Sección derecha: viento y lluvia -->
+    <div class="banner-section">
+        <div class="info-block">
+            <span class="icon" id="iconoViento">💨</span>
+            <span class="info-text" id="viento">-- km/h</span>
+        </div>
 
-    <div class="overlay-item">
-        <span class="icon" id="iconoViento">💨</span>
-        <span id="viento">-- km/h</span>
-        <span class="label"></span>
-    </div>
-
-    <div class="overlay-item">
-        <span class="icon" id="iconoLluvia">☔</span>
-        <span id="lluvia">-- mm</span>
-        <span class="label"></span>
+        <div class="info-block">
+            <span class="icon" id="iconoLluvia">☔</span>
+            <span class="info-text" id="lluvia">-- mm</span>
+        </div>
     </div>
 </div>
 
@@ -109,7 +133,7 @@
         document.getElementById('hora').textContent =
             ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         document.getElementById('fecha').textContent =
-            ahora.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+            ahora.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long' });
 
         const hora = ahora.getHours();
         document.getElementById('iconoHora').textContent = (hora >= 6 && hora < 20) ? "🌞" : "🌙";
@@ -151,7 +175,8 @@
             document.getElementById('temperatura').textContent = `${temp}°C`;
 
             const descripcion = datos.weather[0].description;
-            document.getElementById('descripcionClima').textContent = descripcion.charAt(0).toUpperCase() + descripcion.slice(1);
+            document.getElementById('descripcionClima').textContent =
+                descripcion.charAt(0).toUpperCase() + descripcion.slice(1);
 
             const codigoClima = datos.weather[0].id;
             document.getElementById('iconoClima').textContent = obtenerIconoClima(codigoClima);
@@ -179,6 +204,7 @@
         }
     }
 
+    // Actualizar hora cada segundo y clima cada 10 min
     setInterval(actualizarFechaHora, 1000);
     actualizarFechaHora();
     actualizarClima();
